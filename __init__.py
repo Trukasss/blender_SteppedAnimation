@@ -5,7 +5,7 @@ importlib.reload(stop_mo_addon)
 
 from .stop_mo_addon import (
     STEPPED_OT_apply,
-    STEPPED_OT_delete,
+    STEPPED_OT_remove,
     STEPPED_OT_select,
     STEPPED_PT_pannel,
     register,
