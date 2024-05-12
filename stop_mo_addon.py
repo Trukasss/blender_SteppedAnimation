@@ -157,6 +157,7 @@ class STEPPED_PT_pannel(bpy.types.Panel):
         layout = self.layout
         scene = context.scene
 
+        #TODO delete this section, replace by having operator "Apply all Stepped" and "Remove all stepped"
         # Selection
         col = layout.column(align=True)
         col.label(text="Object Selection")
