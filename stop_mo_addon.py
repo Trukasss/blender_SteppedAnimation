@@ -12,7 +12,7 @@ bl_info = {
 
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import FloatProperty, IntProperty
+from bpy.props import FloatProperty, IntProperty, BoolProperty
 
 
 
@@ -47,6 +47,35 @@ def remove_stepped_interpolation(obj):
             for modifier in modifiers_to_remove:
                 fcurve.modifiers.remove(modifier)
 
+def step_from_markers(obj, frames):
+    if not obj.animation_data and obj.animation_data.action:
+        return
+    for fcurve in obj.animation_data.action.fcurves:
+        modifiers = [mod for mod in fcurve.modifiers if mod.type == 'STEPPED']
+        for i, frame in enumerate(frames):
+            # get or add needed modifier
+            if i < len(modifiers):
+                modifier = modifiers[i]
+            else:
+                modifier = fcurve.modifiers.new(type='STEPPED')
+            # apply modifier settings
+            modifier.mute = False
+            modifier.show_expanded = False
+            modifier.use_influence = False
+            modifier.use_frame_start = True
+            modifier.frame_step = 100000
+            modifier.frame_start = frame
+            modifier.frame_offset = frame
+            if i + 1 < len(frames):
+                modifier.use_frame_end = True
+                modifier.frame_end = frames[i + 1] - 0.001
+            else:
+                modifier.use_frame_end = False
+        # remove unused modifiers
+        if len(modifiers) > len(frames):
+            for modifier in modifiers[len(frames):]:
+                fcurve.modifiers.remove(modifier)
+
 class STEPPED_OT_apply(bpy.types.Operator):
     bl_idname = "stepped.apply"
     bl_label = "Apply Steps"
@@ -54,14 +83,26 @@ class STEPPED_OT_apply(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
+        if context.scene.STEPPED_properties.use_markers:
+            self.apply_with_markers()
+        else:
+            self.apply_with_properties(context)
+        return {'FINISHED'}
+    
+    def apply_with_markers(self):
+        frames = [0] + [marker.frame for marker in bpy.context.scene.timeline_markers]
+        frames = sorted(frames)
+        for obj in bpy.context.selected_objects:
+            step_from_markers(obj, frames)
+
+    def apply_with_properties(self, context):
         step_amount = context.scene.STEPPED_properties.step_amount
         offset_amount = context.scene.STEPPED_properties.offset_amount
         start_frame = context.scene.STEPPED_properties.start_frame
         end_frame = context.scene.STEPPED_properties.end_frame
-
         for obj in bpy.context.selected_objects:
             add_or_update_stepped_interpolation(obj, step_amount, offset_amount, start_frame, end_frame)
-        return {'FINISHED'}
+
 
 class STEPPED_OT_delete(bpy.types.Operator):
     bl_idname = "stepped.delete"
@@ -128,6 +169,7 @@ class STEPPED_PT_pannel(bpy.types.Panel):
         box = layout.box()
         col = box.column(align=True)
         col.label(text="Controls:")
+        col.prop(scene.STEPPED_properties, "use_markers",)
         col.prop(scene.STEPPED_properties, "step_amount", text="Step Amount")
         col.prop(scene.STEPPED_properties, "offset_amount", text="Offset Amount")
         col.prop(scene.STEPPED_properties, "start_frame", text="Start Frame")
@@ -138,6 +180,7 @@ class STEPPED_properties(PropertyGroup):
     offset_amount: IntProperty(name="Offset Amount", default=1, min=0, max=100) # type: ignore
     start_frame: IntProperty(name="Start Frame", default=0, min=0, max=10000) # type: ignore
     end_frame: IntProperty(name="End Frame", default=100, min=0, max=10000) # type: ignore
+    use_markers: BoolProperty(name="Use markers", default=False) # type: ignore
 
 def register():
     bpy.utils.register_class(STEPPED_OT_apply)
