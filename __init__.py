@@ -4,7 +4,7 @@ from bpy.types import PropertyGroup
 from bpy.props import PointerProperty, IntProperty, EnumProperty, BoolProperty
 
 bl_info = {
-    "name": "Stop-Mo",
+    "name": "Stepped",
     "author": "Lukas Sabaliauskas",
     "version": (1, 0),
     "blender": (3, 5),

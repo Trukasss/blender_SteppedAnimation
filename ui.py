@@ -1,28 +1,18 @@
 from bpy.types import Panel
-from .op import STEPPED_OT_select, STEPPED_OT_apply, STEPPED_OT_remove, get_objs
+from .op import STEPPED_OT_select, STEPPED_OT_apply, STEPPED_OT_remove, get_user_objects
 
 
 
 class STEPPED_PT_pannel(Panel):
-    bl_label = "Stop-Mo"
+    bl_label = "Stepped addon"
     bl_idname = "STEPPED_PT_pannel"
     bl_space_type = 'GRAPH_EDITOR'
     bl_region_type = 'UI'
-    bl_category = 'Stop-Mo'
+    bl_category = 'Stepped'
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-
-        #TODO delete this section, replace by having operator "Apply all Stepped" and "Remove all stepped"
-        # Selection
-        col = layout.column(align=True)
-        col.label(text="Object Selection")
-        box = col.box()
-        box_col = box.column(align=True)
-        for obj in get_objs():
-            box_col.label(text=obj.name)
-        col.operator(STEPPED_OT_select.bl_idname)
 
         # Add the middle 3 number fields in a box with 'Controls' label
         col = layout.column(align=False)
@@ -46,6 +36,11 @@ class STEPPED_PT_pannel(Panel):
 
         # Add the top 3 buttons in a box with 'Add/Remove Modifiers' label
         col = layout.column(align=True)
-        col.label(text="Add/Remove Modifiers")
-        col.operator(STEPPED_OT_apply.bl_idname)
-        col.operator(STEPPED_OT_remove.bl_idname)
+        col.label(text="Add Modifiers")
+        col.operator(STEPPED_OT_apply.bl_idname, text="Set Selected").to_all=False
+        col.operator(STEPPED_OT_apply.bl_idname, text="Set All").to_all = True
+        col.label(text="Remove Modifiers")
+        col.operator(STEPPED_OT_remove.bl_idname, text="Remove Selected").from_all = False
+        col.operator(STEPPED_OT_remove.bl_idname, text="Remove All").from_all = True
+        col.label(text="Select Modifiers")
+        col.operator(STEPPED_OT_select.bl_idname)

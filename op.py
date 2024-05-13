@@ -1,11 +1,13 @@
 import bpy
+from bpy.props import BoolProperty
 
-def get_objs():
+def get_user_objects():
     if bpy.context.selected_objects:
         return bpy.context.selected_objects
     elif bpy.context.active_object:
         return [bpy.context.active_object]
-    return []
+    else:
+        return []
 
 def add_or_update_stepped_interpolation(obj, step_amount, offset_amount, use_frame_start, frame_start, use_frame_end, frame_end):
     if obj.animation_data and obj.animation_data.action:
@@ -70,10 +72,13 @@ def step_from_markers(obj, frames):
 class STEPPED_OT_apply(bpy.types.Operator):
     bl_idname = "stepped.apply"
     bl_label = "Apply Steps"
-    bl_description = "Apply Stepped Interpolation to Selected Objects"
+    bl_description = "Apply Stepped Interpolation to selected objects or all stepped objects"
     bl_options = {'REGISTER', 'UNDO'}
+    to_all: BoolProperty(name="apply_to_all", default=False) # type: ignore
 
     def execute(self, context):
+        if self.to_all:
+            bpy.ops.stepped.select()
         if context.scene.STEPPED_properties.preset == "MARKERS":
             self.apply_with_markers()
         else:
@@ -83,7 +88,7 @@ class STEPPED_OT_apply(bpy.types.Operator):
     def apply_with_markers(self):
         frames = [0] + [marker.frame for marker in bpy.context.scene.timeline_markers]
         frames = sorted(frames)
-        for obj in get_objs():
+        for obj in get_user_objects():
             step_from_markers(obj, frames)
 
     def apply_with_properties(self, context):
@@ -93,7 +98,7 @@ class STEPPED_OT_apply(bpy.types.Operator):
         frame_start = context.scene.STEPPED_properties.frame_start
         use_frame_end = context.scene.STEPPED_properties.use_frame_end
         frame_end = context.scene.STEPPED_properties.frame_end
-        for obj in get_objs():
+        for obj in get_user_objects():
             add_or_update_stepped_interpolation(
                 obj, 
                 step_amount, 
@@ -107,18 +112,22 @@ class STEPPED_OT_apply(bpy.types.Operator):
 class STEPPED_OT_remove(bpy.types.Operator):
     bl_idname = "stepped.delete"
     bl_label = "Remove Steps"
-    bl_description = "Remove Stepped Interpolation from Selected Objects"
+    bl_description = "Remove Stepped Interpolation from selected objects or all objects"
     bl_options = {'REGISTER', 'UNDO'}
+    from_all: BoolProperty(name="remove_from_all", default=False) # type: ignore
 
     def execute(self, context):
-        for obj in get_objs():
-            # Set the frame step of the stepped interpolation modifier to 1
-            fcurves = obj.animation_data.action.fcurves
+        if self.from_all:
+            bpy.ops.stepped.select()
+        for obj in get_user_objects():
+            action = obj.animation_data.action
+            if not action:
+                continue
+            fcurves = action.fcurves
             for fcurve in fcurves:
                 for mod in fcurve.modifiers:
                     if mod.type == 'STEPPED':
                         mod.frame_step = 1
-
             # Remove the stepped interpolation modifier
             remove_stepped_interpolation(obj)
         return {'FINISHED'}
@@ -131,15 +140,12 @@ class STEPPED_OT_select(bpy.types.Operator):
 
     def execute(self, context):
         modified_objects = []
-
         for obj in bpy.context.scene.objects:
             if obj.animation_data and obj.animation_data.action:
                 for fcurve in obj.animation_data.action.fcurves:
                     if any(mod.type == 'STEPPED' for mod in fcurve.modifiers):
                         modified_objects.append(obj)
-
         bpy.ops.object.select_all(action='DESELECT')
         for obj in modified_objects:
             obj.select_set(True)
-
         return {'FINISHED'}
