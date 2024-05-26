@@ -1,12 +1,11 @@
 from bpy.types import Panel
-from .op import STEPPED_OT_select, STEPPED_OT_apply, STEPPED_OT_remove, get_user_objects
-
+from .op import STEPPED_OT_select, STEPPED_OT_apply, STEPPED_OT_remove, STEPPED_OT_auto_update, get_user_objects
 
 
 class STEPPED_PT_pannel(Panel):
     bl_label = "Stepped addon"
     bl_idname = "STEPPED_PT_pannel"
-    bl_space_type = "GRAPH_EDITOR"
+    bl_space_type = "DOPESHEET_EDITOR"
     bl_region_type = "UI"
     bl_category = "Stepped"
 
@@ -33,14 +32,13 @@ class STEPPED_PT_pannel(Panel):
             sub_row = row.row()
             sub_row.prop(scene.STEPPED_properties, "frame_end", text="End Frame")
             sub_row.active = context.scene.STEPPED_properties.use_frame_end
+        col.prop(context.scene.STEPPED_properties, "auto_update")
 
         # Add the top 3 buttons in a box with "Add/Remove Modifiers" label
         col = layout.column(align=True)
-        col.label(text="Add Modifiers")
-        col.operator(STEPPED_OT_apply.bl_idname, text="Set Selected").to_all=False
-        col.operator(STEPPED_OT_apply.bl_idname, text="Set All").to_all = True
-        col.label(text="Remove Modifiers")
-        col.operator(STEPPED_OT_remove.bl_idname, text="Remove Selected").from_all = False
-        col.operator(STEPPED_OT_remove.bl_idname, text="Remove All").from_all = True
-        col.label(text="Select Modifiers")
+        col.label(text="Add / Remove Modifiers")
+        col.operator(STEPPED_OT_apply.bl_idname, text="Step").update_all = True
+        col.operator(STEPPED_OT_remove.bl_idname, text="Unstep").from_all = False
+        col.operator(STEPPED_OT_remove.bl_idname, text="Unstep All").from_all = True
+        col.label(text="Select")
         col.operator(STEPPED_OT_select.bl_idname)

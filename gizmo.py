@@ -14,9 +14,8 @@ class STEPPED_GT_marker_shape(Gizmo):
 class STEPPED_GGT_marker(GizmoGroup):
     bl_label = "Stepped marker"
     bl_options = {"PERSISTENT", "SHOW_MODAL_ALL", "SCALE"}
-    bl_space_type = "VIEW_3D" #TODO Changer en GRAPH_EDITOR et non DOPESHEET_EDITOR # 'VIEW_3D'
-    #'EMPTY', 'VIEW_3D', 'IMAGE_EDITOR', 'NODE_EDITOR', 'SEQUENCE_EDITOR', 'CLIP_EDITOR', 'DOPESHEET_EDITOR', 'GRAPH_EDITOR', 'NLA_EDITOR', 'TEXT_EDITOR', 'CONSOLE', 'INFO', 'TOPBAR', 'STATUSBAR', 'OUTLINER', 'PROPERTIES', 'FILE_BROWSER', 'SPREADSHEET', 'PREFERENCES'
-    bl_region_type = "WINDOW" #'WINDOW', 'HEADER', 'CHANNELS', 'TEMPORARY', 'UI', 'TOOLS', 'TOOL_PROPS', 'ASSET_SHELF', 'ASSET_SHELF_HEADER', 'PREVIEW', 'HUD', 'NAVIGATION_BAR', 'EXECUTE', 'FOOTER', 'TOOL_HEADER', 'XR'
+    bl_space_type = "DOPESHEET_EDITOR"
+    bl_region_type = "WINDOW"
     
 
     def setup(self, context:Context):
@@ -43,17 +42,16 @@ class STEPPED_GGT_marker(GizmoGroup):
             self.gizmos.remove(self.gizmos[i])
 
     def draw_prepare(self, context: Context):
-        tst = context.scene.frame_current*10
         self.udpate_markers(context)
-        # w = 110 * context.preferences.system.ui_scale
-        # h = 90 * context.preferences.system.ui_scale
+        w = 11 * context.preferences.system.ui_scale
+        h = 9 * context.preferences.system.ui_scale
         for i in range(len(self.gizmos)):
-            # x = context.region.view2d.view_to_region(
-            #         x=context.scene.timeline_markers[i].frame, 
-            #         y=0, #TODO ne fonctionne qu'avec <=0 pk?
-            #         clip=True
-            #     )[0]
-            self.gizmos[i].matrix_basis[0][3] = tst# + x - 0.5 * w #((vxX, vyX, vzX, vwX) # x pos ?
-            self.gizmos[i].matrix_basis[0][0] = tst# + w           # (vxY, vyY, vzY, vwY) # x scale ?
-            self.gizmos[i].matrix_basis[1][3] = tst# + 20           # (vxZ, vyZ, vzZ, vwZ) # y pos ?
-            self.gizmos[i].matrix_basis[1][1] = tst# + h           # (vxW, vyW, vzW, vwW) # y scale ?
+            x = context.region.view2d.view_to_region(
+                    x=context.scene.timeline_markers[i].frame, 
+                    y=0, #TODO ne fonctionne qu'avec <=0 pk?
+                    clip=True
+                )[0]
+            self.gizmos[i].matrix_basis[0][3] = x - 0.5 * w #((vxX, vyX, vzX, vwX) # x pos ?
+            self.gizmos[i].matrix_basis[0][0] = w           # (vxY, vyY, vzY, vwY) # x scale ?
+            self.gizmos[i].matrix_basis[1][3] = 20           # (vxZ, vyZ, vzZ, vwZ) # y pos ?
+            self.gizmos[i].matrix_basis[1][1] = h           # (vxW, vyW, vzW, vwW) # y scale ?

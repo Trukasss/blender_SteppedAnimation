@@ -23,15 +23,16 @@ from . import gizmo
 importlib.reload(gizmo)
 
 from .props import STEPPED_properties
-from .op import STEPPED_OT_apply, STEPPED_OT_remove, STEPPED_OT_select
+from .op import STEPPED_OT_apply, STEPPED_OT_remove, STEPPED_OT_select, STEPPED_OT_auto_update
 from .ui import STEPPED_PT_pannel
-from .gizmo import STEPPED_GGT_marker, STEPPED_GT_marker_shape#, STEPPED_OT_update_marker
+from .gizmo import STEPPED_GGT_marker, STEPPED_GT_marker_shape
 
 CLASSES = (
     STEPPED_properties,
     STEPPED_OT_apply,
     STEPPED_OT_remove,
     STEPPED_OT_select,
+    STEPPED_OT_auto_update,
     STEPPED_PT_pannel,
     STEPPED_GGT_marker,
     STEPPED_GT_marker_shape,

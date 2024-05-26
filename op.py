@@ -1,5 +1,7 @@
 import bpy
+from bpy.types import Context, Operator, Event, TimelineMarkers, TimelineMarker
 from bpy.props import BoolProperty
+
 
 def get_user_objects():
     if bpy.context.selected_objects:
@@ -8,6 +10,7 @@ def get_user_objects():
         return [bpy.context.active_object]
     else:
         return []
+
 
 def add_or_update_stepped_interpolation(obj, step_amount, offset_amount, use_frame_start, frame_start, use_frame_end, frame_end):
     if obj.animation_data and obj.animation_data.action:
@@ -32,12 +35,14 @@ def add_or_update_stepped_interpolation(obj, step_amount, offset_amount, use_fra
             modifier.frame_end = frame_end
             modifier.use_influence = False
 
+
 def remove_stepped_interpolation(obj):
     if obj.animation_data and obj.animation_data.action:
         for fcurve in obj.animation_data.action.fcurves:
             modifiers_to_remove = [mod for mod in fcurve.modifiers if mod.type == "STEPPED"]
             for modifier in modifiers_to_remove:
                 fcurve.modifiers.remove(modifier)
+
 
 def step_from_markers(obj, frames):
     if not obj.animation_data and obj.animation_data.action:
@@ -69,22 +74,24 @@ def step_from_markers(obj, frames):
             for modifier in modifiers[len(frames):]:
                 fcurve.modifiers.remove(modifier)
 
-class STEPPED_OT_apply(bpy.types.Operator):
+
+class STEPPED_OT_apply(Operator):
     bl_idname = "stepped.apply"
     bl_label = "Apply Steps"
     bl_description = "Apply Stepped Interpolation to selected objects or all stepped objects"
     bl_options = {"REGISTER", "UNDO"}
-    to_all: BoolProperty(name="apply_to_all", default=False) # type: ignore
+    update_all: BoolProperty(name="Update all stepped", default=False)  # type: ignore
 
     def execute(self, context):
-        if self.to_all:
+        if self.update_all:
             bpy.ops.stepped.select()
         if context.scene.STEPPED_properties.preset == "MARKERS":
             self.apply_with_markers()
         else:
             self.apply_with_properties(context)
+        self.report({"INFO"}, "Applying step parameters")
         return {"FINISHED"}
-    
+
     def apply_with_markers(self):
         frames = [0] + [marker.frame for marker in bpy.context.scene.timeline_markers]
         frames = sorted(frames)
@@ -100,21 +107,22 @@ class STEPPED_OT_apply(bpy.types.Operator):
         frame_end = context.scene.STEPPED_properties.frame_end
         for obj in get_user_objects():
             add_or_update_stepped_interpolation(
-                obj, 
-                step_amount, 
+                obj,
+                step_amount,
                 offset_amount,
                 use_frame_start,
-                frame_start, 
+                frame_start,
                 use_frame_end,
                 frame_end
-                )
+            )
 
-class STEPPED_OT_remove(bpy.types.Operator):
+
+class STEPPED_OT_remove(Operator):
     bl_idname = "stepped.delete"
     bl_label = "Remove Steps"
     bl_description = "Remove Stepped Interpolation from selected objects or all objects"
     bl_options = {"REGISTER", "UNDO"}
-    from_all: BoolProperty(name="remove_from_all", default=False) # type: ignore
+    from_all: BoolProperty(name="remove_from_all", default=False)  # type: ignore
 
     def execute(self, context):
         if self.from_all:
@@ -132,7 +140,8 @@ class STEPPED_OT_remove(bpy.types.Operator):
             remove_stepped_interpolation(obj)
         return {"FINISHED"}
 
-class STEPPED_OT_select(bpy.types.Operator):
+
+class STEPPED_OT_select(Operator):
     bl_idname = "stepped.select"
     bl_label = "Select Stepped"
     bl_description = "Select all objects in the scene that have a stepped interpolation modifier"
@@ -149,3 +158,47 @@ class STEPPED_OT_select(bpy.types.Operator):
         for obj in modified_objects:
             obj.select_set(True)
         return {"FINISHED"}
+
+
+class STEPPED_OT_auto_update(Operator):
+    bl_label = "Auto update"
+    bl_idname = "stepped.auto_update"
+    bl_description = "Whenever an option changes, update all stepped objects"
+    __is_running = False
+    initial_markers = []
+
+    @classmethod
+    def on_property_change(context: Context):
+        bpy.ops.stepped.auto_update()
+
+    def execute(self, context: Context):
+        if not context.scene.STEPPED_properties.auto_update:
+            return {"FINISHED"}
+        if self.__class__.__is_running:
+            self.report({"WARNING"}, "Stepped auto update modal already running")
+            return{"CANCELLED"}
+        self.__class__.__is_running = context.window_manager.modal_handler_add(self)
+        print("STARTING")
+        return {"RUNNING_MODAL"}
+
+    def modal(self, context: Context, event: Event):
+        print("running")
+        if self.markers_changed(context.scene.timeline_markers):
+            bpy.ops.stepped.apply(update_all=True)
+            self.save_markers(context)
+        if not context.scene.STEPPED_properties.auto_update:
+            self.__class__.__is_running = False
+            print("CANCELLINGGGGGGGGGGGGGGGGG")
+            return {"FINISHED"}
+        return {"PASS_THROUGH"}
+
+    def save_markers(self, context: Context):
+        self.initial_markers = [m.frame for m in context.scene.timeline_markers]
+
+    def markers_changed(self, markers_b: TimelineMarkers):
+        if len(self.initial_markers) != len(markers_b):
+            return True
+        for a, b in zip(self.initial_markers, markers_b):
+            if a != b.frame:
+                return True
+        return False
