@@ -76,8 +76,8 @@ def step_from_markers(obj, frames):
 
 
 class STEPPED_OT_apply(Operator):
-    bl_idname = "stepped.apply"
     bl_label = "Apply Steps"
+    bl_idname = "stepped.apply"
     bl_description = "Apply Stepped Interpolation to selected objects or all stepped objects"
     bl_options = {"REGISTER", "UNDO"}
     update_all: BoolProperty(name="Update all stepped", default=False)  # type: ignore
@@ -118,8 +118,8 @@ class STEPPED_OT_apply(Operator):
 
 
 class STEPPED_OT_remove(Operator):
-    bl_idname = "stepped.delete"
     bl_label = "Remove Steps"
+    bl_idname = "stepped.delete"
     bl_description = "Remove Stepped Interpolation from selected objects or all objects"
     bl_options = {"REGISTER", "UNDO"}
     from_all: BoolProperty(name="remove_from_all", default=False)  # type: ignore
@@ -142,8 +142,8 @@ class STEPPED_OT_remove(Operator):
 
 
 class STEPPED_OT_select(Operator):
-    bl_idname = "stepped.select"
     bl_label = "Select Stepped"
+    bl_idname = "stepped.select"
     bl_description = "Select all objects in the scene that have a stepped interpolation modifier"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -164,33 +164,33 @@ class STEPPED_OT_auto_update(Operator):
     bl_label = "Auto update"
     bl_idname = "stepped.auto_update"
     bl_description = "Whenever an option changes, update all stepped objects"
-    __is_running = False
     initial_markers = []
-
-    @classmethod
-    def on_property_change(context: Context):
-        bpy.ops.stepped.auto_update()
+    prop = None
 
     def execute(self, context: Context):
-        if not context.scene.STEPPED_properties.auto_update:
-            return {"FINISHED"}
-        if self.__class__.__is_running:
-            self.report({"WARNING"}, "Stepped auto update modal already running")
-            return{"CANCELLED"}
-        self.__class__.__is_running = context.window_manager.modal_handler_add(self)
-        print("STARTING")
-        return {"RUNNING_MODAL"}
+        self.prop = bpy.context.scene.STEPPED_properties
+        if self.prop.auto_running:
+            self.prop.auto_off = True
+            return self.return_finished()
+        else:
+            self.prop.auto_off = False
+            context.window_manager.modal_handler_add(self)
+            self.prop.auto_running = True
+            return {"RUNNING_MODAL"}
 
-    def modal(self, context: Context, event: Event):
-        print("running")
+    def modal(self, context: Context, event: Event): #TODO check also if parameters changed
         if self.markers_changed(context.scene.timeline_markers):
             bpy.ops.stepped.apply(update_all=True)
             self.save_markers(context)
-        if not context.scene.STEPPED_properties.auto_update:
-            self.__class__.__is_running = False
-            print("CANCELLINGGGGGGGGGGGGGGGGG")
-            return {"FINISHED"}
+        if event.type in ["RIGHTMOUSE"]:  # TODO debug
+            return self.return_finished()
+        if self.prop.auto_off:
+            return self.return_finished()
         return {"PASS_THROUGH"}
+
+    def return_finished(self):
+        self.prop.auto_running = False
+        return {"FINISHED"}
 
     def save_markers(self, context: Context):
         self.initial_markers = [m.frame for m in context.scene.timeline_markers]

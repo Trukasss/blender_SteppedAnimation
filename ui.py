@@ -1,3 +1,4 @@
+import bpy
 from bpy.types import Panel
 from .op import STEPPED_OT_select, STEPPED_OT_apply, STEPPED_OT_remove, STEPPED_OT_auto_update, get_user_objects
 
@@ -32,7 +33,10 @@ class STEPPED_PT_pannel(Panel):
             sub_row = row.row()
             sub_row.prop(scene.STEPPED_properties, "frame_end", text="End Frame")
             sub_row.active = context.scene.STEPPED_properties.use_frame_end
-        col.prop(context.scene.STEPPED_properties, "auto_update")
+        if context.scene.STEPPED_properties.auto_running:
+            col.operator(STEPPED_OT_auto_update.bl_idname, text="Auto update: ON", icon="SEQUENCE_COLOR_01")
+        else:
+            col.operator(STEPPED_OT_auto_update.bl_idname, text="Auto update: OFF")
 
         # Add the top 3 buttons in a box with "Add/Remove Modifiers" label
         col = layout.column(align=True)

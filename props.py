@@ -1,5 +1,4 @@
 import bpy
-from .op import STEPPED_OT_auto_update
 from bpy.types import PropertyGroup
 from bpy.props import IntProperty, EnumProperty, BoolProperty
 
@@ -19,9 +18,9 @@ class STEPPED_properties(PropertyGroup):
             ("MARKERS", "Markers", "Use markers"),
         ],
     )  # type: ignore
-    auto_update: BoolProperty(
+    auto_running: BoolProperty(
         name="Auto Update",
         description="Update all stepped objects whenether the parameters or markers change",
-        default=True,
-        update=lambda self, context: STEPPED_OT_auto_update.on_property_change()
-        )  # type: ignore
+        default=False
+    )  # type: ignore
+    auto_off: BoolProperty(name="Turning auto update off", default=False)  # type: ignore
