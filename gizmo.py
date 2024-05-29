@@ -13,7 +13,7 @@ class STEPPED_GT_marker_shape(Gizmo):
         self.draw_custom_shape(self.custom_shape)
 
 
-class STEPPED_GGT_marker(GizmoGroup): #TODO draw only when 'auto_running'
+class STEPPED_GGT_marker(GizmoGroup):
     bl_label = "Stepped marker"
     bl_options = {"PERSISTENT", "SHOW_MODAL_ALL", "SCALE"}
     bl_space_type = "DOPESHEET_EDITOR"
@@ -43,13 +43,16 @@ class STEPPED_GGT_marker(GizmoGroup): #TODO draw only when 'auto_running'
             self.gizmos.remove(self.gizmos[i])
 
     def draw_prepare(self, context: Context):
+        if not context.scene.STEPPED_properties.auto_running:
+            self.gizmos.clear()
+            return
         self.udpate_markers(context)
         w = 11 * context.preferences.system.ui_scale
         h = 9 * context.preferences.system.ui_scale
         for i in range(len(self.gizmos)):
             x = context.region.view2d.view_to_region(
                 x=context.scene.timeline_markers[i].frame,
-                y=0,  # TODO ne fonctionne qu'avec <=0 pk?
+                y=0,  # ne fonctionne qu'avec <=0 pk?
                 clip=True
             )[0]
             self.gizmos[i].matrix_basis[0][3] = x - 0.5 * w  # ((vxX, vyX, vzX, vwX) # x pos ?

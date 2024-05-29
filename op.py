@@ -178,14 +178,12 @@ class STEPPED_OT_auto_update(Operator):
             self.prop.auto_running = True
             return {"RUNNING_MODAL"}
 
-    def modal(self, context: Context, event: Event): #TODO check also if parameters changed
+    def modal(self, context: Context, event: Event):
+        if self.prop.auto_off or self.prop.preset != "MARKERS":
+            return self.return_finished()
         if self.markers_changed(context.scene.timeline_markers):
             bpy.ops.stepped.apply(update_all=True)
             self.save_markers(context)
-        if event.type in ["RIGHTMOUSE"]:  # TODO debug
-            return self.return_finished()
-        if self.prop.auto_off:
-            return self.return_finished()
         return {"PASS_THROUGH"}
 
     def return_finished(self):
