@@ -2,13 +2,31 @@ from bpy.props import PointerProperty
 import bpy
 import importlib
 from . import props
+from . import modifiers
 from . import op
 from . import ui
 from . import gizmo
-from .props import STEPPED_properties
-from .op import STEPPED_OT_apply, STEPPED_OT_remove, STEPPED_OT_select, STEPPED_OT_auto_update
-from .ui import STEPPED_PT_pannel
-from .gizmo import STEPPED_GGT_marker, STEPPED_GT_marker_shape
+
+from .props import (
+    STEPPED_properties,
+)
+from .op import (
+    STEPPED_OT_apply_abstract,
+    STEPPED_OT_apply_selected,
+    STEPPED_OT_apply_all,
+    STEPPED_OT_remove_abstract,
+    STEPPED_OT_remove_selected,
+    STEPPED_OT_remove_all,
+    STEPPED_OT_select,
+    STEPPED_OT_auto_update,
+)
+from .ui import(
+    STEPPED_PT_pannel,
+)
+from .gizmo import (
+    STEPPED_GGT_marker, 
+    STEPPED_GT_marker_shape,
+)
 
 
 bl_info = {
@@ -24,6 +42,7 @@ bl_info = {
 
 
 importlib.reload(props)
+importlib.reload(modifiers)
 importlib.reload(op)
 importlib.reload(ui)
 importlib.reload(gizmo)
@@ -31,8 +50,12 @@ importlib.reload(gizmo)
 
 CLASSES = (
     STEPPED_properties,
-    STEPPED_OT_apply,
-    STEPPED_OT_remove,
+    STEPPED_OT_apply_abstract,
+    STEPPED_OT_apply_selected,
+    STEPPED_OT_apply_all,
+    STEPPED_OT_remove_abstract,
+    STEPPED_OT_remove_selected,
+    STEPPED_OT_remove_all,
     STEPPED_OT_select,
     STEPPED_OT_auto_update,
     STEPPED_PT_pannel,

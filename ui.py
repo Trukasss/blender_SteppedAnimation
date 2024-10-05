@@ -1,6 +1,12 @@
-import bpy
 from bpy.types import Panel
-from .op import STEPPED_OT_select, STEPPED_OT_apply, STEPPED_OT_remove, STEPPED_OT_auto_update, get_user_objects
+from .op import (
+    STEPPED_OT_select,
+    STEPPED_OT_apply_selected,
+    STEPPED_OT_apply_all,
+    STEPPED_OT_remove_selected,
+    STEPPED_OT_remove_all,
+    STEPPED_OT_auto_update,
+)
 
 
 class STEPPED_PT_pannel(Panel):
@@ -43,9 +49,9 @@ class STEPPED_PT_pannel(Panel):
         # Add the top 3 buttons in a box with "Add/Remove Modifiers" label
         col = layout.column(align=True)
         col.label(text="Add / Remove Modifiers")
-        col.operator(STEPPED_OT_apply.bl_idname, text="Step").update_all = False
-        col.operator(STEPPED_OT_apply.bl_idname, text="Step All").update_all = True
-        col.operator(STEPPED_OT_remove.bl_idname, text="Unstep").from_all = False
-        col.operator(STEPPED_OT_remove.bl_idname, text="Unstep All").from_all = True
+        col.operator(STEPPED_OT_apply_selected.bl_idname, text="Step")
+        col.operator(STEPPED_OT_apply_all.bl_idname, text="Step All")
+        col.operator(STEPPED_OT_remove_selected.bl_idname, text="Unstep")
+        col.operator(STEPPED_OT_remove_all.bl_idname, text="Unstep All")
         col.label(text="Select")
         col.operator(STEPPED_OT_select.bl_idname)
