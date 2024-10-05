@@ -90,7 +90,7 @@ class STEPPED_OT_select(Operator):
 class STEPPED_OT_auto_update(Operator):
     bl_label = "Auto update"
     bl_idname = "stepped.auto_update"
-    bl_description = "Whenever an option changes, update all stepped objects"
+    bl_description = "Whenever a marker is moved, update all stepped objects"
     initial_markers = []
     prop = None
 
@@ -109,7 +109,7 @@ class STEPPED_OT_auto_update(Operator):
         if self.prop.auto_off or self.prop.preset != "MARKERS":
             return self.return_finished()
         if self.markers_changed(context.scene.timeline_markers):
-            bpy.ops.stepped.apply(update_all=True)
+            bpy.ops.stepped.apply_all()
             self.save_markers(context)
         return {"PASS_THROUGH"}
 
