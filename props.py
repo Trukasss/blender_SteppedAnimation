@@ -9,7 +9,7 @@ def apply_all(self, context):
 
 
 class STEPPED_properties(PropertyGroup):
-    step_amount: IntProperty(name="Step Amount", default=2, min=0, max=100, update=apply_all)  # type: ignore
+    step_amount: IntProperty(name="Step Amount", default=2, min=1, max=100, update=apply_all)  # type: ignore
     offset_amount: IntProperty(name="Offset Amount", default=1, min=0, max=100, update=apply_all)  # type: ignore
     frame_start: IntProperty(name="Start Frame", default=1, min=0, max=10000, update=apply_all)  # type: ignore
     use_frame_start: BoolProperty(name="Use Start Frame", default=False, update=apply_all)  # type: ignore
