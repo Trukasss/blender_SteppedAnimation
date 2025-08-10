@@ -1,11 +1,32 @@
-from bpy.props import PointerProperty
+bl_info = {
+    "name": "Stepped",
+    "author": "Lukas Sabaliauskas",
+    "version": (1, 0),
+    "blender": (3, 5),
+    "description": "Adds and removes stepped interpolation from selected objects",
+    "warning": "",
+    "doc_url": "",
+    "category": "Animation",
+}
+
+
+is_reloading = "bpy" in locals()
+
 import bpy
-import importlib
+from bpy.props import PointerProperty
 from . import props
 from . import modifiers
 from . import op
 from . import ui
 from . import gizmo
+
+if is_reloading:
+    import importlib
+    importlib.reload(props)
+    importlib.reload(modifiers)
+    importlib.reload(op)
+    importlib.reload(ui)
+    importlib.reload(gizmo)
 
 from .props import (
     STEPPED_properties,
@@ -29,23 +50,6 @@ from .gizmo import (
 )
 
 
-bl_info = {
-    "name": "Stepped",
-    "author": "Lukas Sabaliauskas",
-    "version": (1, 0),
-    "blender": (3, 5),
-    "description": "Adds and removes stepped interpolation from selected objects",
-    "warning": "",
-    "doc_url": "",
-    "category": "Animation",
-}
-
-
-importlib.reload(props)
-importlib.reload(modifiers)
-importlib.reload(op)
-importlib.reload(ui)
-importlib.reload(gizmo)
 
 
 CLASSES = (
